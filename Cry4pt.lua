@@ -1052,7 +1052,7 @@ local GetMagnitude = function(Plr, Char)
 end
 
 local Settings = {
-    Prefix = "!",
+    Prefix = ".",
     CommandBarPrefix = "Semicolon",
     ChatPrediction = false,
     Macros = {},
@@ -1125,7 +1125,7 @@ local SetConfig = function(conf)
 end
 
 local CurrentConfig = GetConfig();
-local Prefix = isfolder and CurrentConfig.Prefix or "!"
+local Prefix = isfolder and CurrentConfig.Prefix or "."
 local Macros = CurrentConfig.Macros or {}
 local AdminUsers = AdminUsers or {}
 local Exceptions = Exceptions or {}
