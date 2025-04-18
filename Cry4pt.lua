@@ -5255,26 +5255,30 @@ end)
 AddCommand("noclip", {}, "noclips your character", {3}, function(Caller, Args, CEnv)
     local Char = GetCharacter()
     local Noclipping = AddConnection(CConnect(Stepped, function()
-        for i, v in next, GetChildren(Char) do
-            if (IsA(v, "BasePart") and v.CanCollide) then
-                SpoofProperty(v, "CanCollide");
+        for _, v in next, GetChildren(Char) do
+            if IsA(v, "BasePart") and v.CanCollide then
+                SpoofProperty(v, "CanCollide")
                 v.CanCollide = false
             end
         end
-    end), CEnv);
-    Utils.Notify(Caller, "Command", "noclip enabled");
-    CWait(GetHumanoid().Died);
-    DisableAllCmdConnections("noclip");
+    end), CEnv)
+    
+    Utils.Notify(Caller, "Command", "noclip enabled")
+    
+    -- Auto-disable on death
+    CWait(GetHumanoid().Died)
+    DisableAllCmdConnections("noclip")
+    
     return "noclip disabled"
 end)
 
 AddCommand("clip", {"unnoclip"}, "disables noclip", {}, function(Caller, Args)
-    if (not next(LoadCommand("noclip").CmdEnv)) then
+    if not next(LoadCommand("noclip").CmdEnv) then
         return "you aren't in noclip"
-    else
-        DisableAllCmdConnections("noclip");
-        return "noclip disabled"
     end
+    
+    DisableAllCmdConnections("noclip")
+    return "noclip disabled"
 end)
 
 AddCommand("anim", {"animation"}, "plays an animation", {3, "1"}, function(Caller, Args)
