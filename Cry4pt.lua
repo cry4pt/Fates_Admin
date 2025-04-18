@@ -5265,21 +5265,39 @@ AddCommand("noclip", {}, "noclips your character", {3}, function(Caller, Args, C
     
     Utils.Notify(Caller, "Command", "noclip enabled")
     
-    -- Auto-disable on death
     CWait(GetHumanoid().Died)
     DisableAllCmdConnections("noclip")
     
+    -- Restore collision after death
+    for _, v in next, GetChildren(Char) do
+        if IsA(v, "BasePart") then
+            v.CanCollide = true
+        end
+    end
+
     return "noclip disabled"
 end)
 
 AddCommand("clip", {"unnoclip"}, "disables noclip", {}, function(Caller, Args)
-    if not next(LoadCommand("noclip").CmdEnv) then
+    local Cmd = LoadCommand("noclip")
+    if not next(Cmd.CmdEnv) then
         return "you aren't in noclip"
     end
-    
+
+    -- Disconnect the noclip loop
     DisableAllCmdConnections("noclip")
+
+    -- Force collision back on immediately
+    local Char = GetCharacter()
+    for _, v in next, GetChildren(Char) do
+        if IsA(v, "BasePart") then
+            v.CanCollide = true
+        end
+    end
+
     return "noclip disabled"
 end)
+
 
 AddCommand("anim", {"animation"}, "plays an animation", {3, "1"}, function(Caller, Args)
     local Anims = {
