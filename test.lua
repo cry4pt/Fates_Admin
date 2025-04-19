@@ -108,16 +108,21 @@ local exe_set_proxy = function(event, ...)
             local bone = character and character:FindFirstChild(Hitbox_Parts[Target_Hitbox])
 
             if bone then
-                -- Teleport bullet to enemy's hitbox
-                args[3] = bone.Position -- Set bullet spawn position to target
-                args[4] = Vector3.new() -- Zero out velocity for instant hit
+                -- Get bullet properties from original parameters
+                local fire_params = discharge_params.fire_params
+                local original_muzzle_pos = args[3]
+                
+                -- Calculate direction from muzzle to target
+                local target_direction = (bone.Position - original_muzzle_pos).Unit
+                
+                -- Spawn bullet INSIDE the hitbox part
+                args[3] = bone.Position - (target_direction * 0.1) -- Offset slightly into the hitbox
+                
+                -- Set velocity to ensure instant collision
+                args[4] = target_direction * fire_params.muzzle_velocity
             end
         end
     end
 
     return old_exe_set(event, table.unpack(args))
 end
-
-old_exe_set = hookfunction(exe_set, function(...)
-    return exe_set_proxy(...)
-end)
