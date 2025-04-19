@@ -108,18 +108,10 @@ local exe_set_proxy = function(event, ...)
             local bone = character and character:FindFirstChild(Hitbox_Parts[Target_Hitbox])
 
             if bone then
-                -- Get bullet properties from original parameters
                 local fire_params = discharge_params.fire_params
-                local original_muzzle_pos = args[3]
-                
-                -- Calculate direction from muzzle to target
-                local target_direction = (bone.Position - original_muzzle_pos).Unit
-                
-                -- Spawn bullet INSIDE the hitbox part
-                args[3] = bone.Position - (target_direction * 0.1) -- Offset slightly into the hitbox
-                
-                -- Set velocity to ensure instant collision
-                args[4] = target_direction * fire_params.muzzle_velocity
+                local fire_multipliers = discharge_params.fire_multipliers
+
+                args[4] = CFrame.lookAt(args[3], bone.CFrame.p).LookVector * (fire_params.muzzle_velocity * 1000)
             end
         end
     end
