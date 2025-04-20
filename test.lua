@@ -220,10 +220,23 @@ local exe_set_proxy = function(event, ...)
             local bone = character and character:FindFirstChild(Silent_Aim_Target.hitbox)
             if bone then
                 local fire_params = discharge_params.fire_params
-                local fire_multipliers = discharge_params.fire_multipliers
                 local randomChance = math.random(1, 100)
                 if randomChance <= getgenv().HitChance then
-                    args[4] = CFrame.lookAt(args[3], bone.CFrame.p).LookVector * (fire_params.muzzle_velocity)
+                    -- Calculate direction and distance to the target
+                    local direction = (bone.CFrame.p - args[3]).Unit
+                    local distance = (bone.CFrame.p - args[3]).Magnitude
+                    
+                    -- Define how quickly the bullet should reach the target (in seconds)
+                    local time_to_hit = 0.01
+                    
+                    -- Calculate required speed to hit the target in time_to_hit seconds
+                    local required_speed = distance / time_to_hit
+                    
+                    -- Ensure speed is at least the default muzzle velocity
+                    local speed = math.max(fire_params.muzzle_velocity, required_speed)
+                    
+                    -- Set the bullet's velocity
+                    args[4] = direction * speed
                 end
             end
         end
@@ -231,7 +244,3 @@ local exe_set_proxy = function(event, ...)
 
     return old_exe_set(event, table.unpack(args))
 end
-
-old_exe_set = hookfunction(exe_set, function(...)
-    return exe_set_proxy(...)
-end)
