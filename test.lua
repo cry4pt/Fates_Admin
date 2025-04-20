@@ -132,6 +132,7 @@ getgenv().fovCircle.Color = Color3.fromRGB(255,255,255)
 
 getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
     getgenv().fovCircle.Position = UserInputService:GetMouseLocation()
+    getgenv().fovCircle.Visible = getgenv().FOV
 
     local clientCharacter = getCharacter(Player)
     local clientHealth = getHealth(Player)
