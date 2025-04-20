@@ -1,4 +1,4 @@
--- script inside of loadstring  --
+-- script inside of loadstring --
 
 if getgenv().con then getgenv().con:Disconnect() end
 if getgenv().fovCircle then getgenv().fovCircle:Remove() end
@@ -29,6 +29,7 @@ local Target_Hitbox = getgenv().TargetHitbox or "Head"
 local VisibleCheck = getgenv().VisibleCheck or false
 local fov = getgenv().fov or 180
 local TeamCheck = getgenv().TeamCheck ~= false -- Default to true (exclude teammates) if not set
+local HitChance = getgenv().HitChance or 100 -- Default to 100 if not set
 
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -166,7 +167,7 @@ getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
                         end
                     end
                 else
-                    local part_name = Hitbox_Parts[TargetHitbox]
+                    local part_name = Hitbox_Parts[Target_Hitbox]
                     local bone = character:FindFirstChild(part_name)
                     if bone then
                         local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
@@ -220,7 +221,10 @@ local exe_set_proxy = function(event, ...)
             if bone then
                 local fire_params = discharge_params.fire_params
                 local fire_multipliers = discharge_params.fire_multipliers
-                args[4] = CFrame.lookAt(args[3], bone.CFrame.p).LookVector * (fire_params.muzzle_velocity)
+                local randomChance = math.random(1, 100)
+                if randomChance <= getgenv().HitChance then
+                    args[4] = CFrame.lookAt(args[3], bone.CFrame.p).LookVector * (fire_params.muzzle_velocity)
+                end
             end
         end
     end
