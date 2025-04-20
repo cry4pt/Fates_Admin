@@ -232,8 +232,6 @@ local exe_set_proxy = function(event, ...)
         if getgenv().BulletSpeed and args[4].Magnitude > 0 then
             local direction = args[4].Unit
             args[4] = direction * getgenv().BulletSpeed
-        elseif getgenv().BulletSpeedMultiplier and getgenv().BulletSpeedMultiplier ~= 1 then
-            args[4] = args[4] * getgenv().BulletSpeedMultiplier
         end
     end
 
