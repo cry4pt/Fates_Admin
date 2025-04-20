@@ -17,6 +17,7 @@ local Hitbox_Parts = {
     ["RightLeg"] = "TPVBodyVanillaLegR",
 }
 
+-- Define possible hitbox names for dynamic mode
 local Possible_Hitbox_Names = {}
 for _, part_name in pairs(Hitbox_Parts) do
     table.insert(Possible_Hitbox_Names, part_name)
@@ -25,7 +26,7 @@ end
 local Target_Hitbox = getgenv().TargetHitbox or "Head"
 local VisibleCheck = getgenv().VisibleCheck or false
 local fov = getgenv().fov or 180
-local TeamCheck = getgenv().TeamCheck ~= false
+local TeamCheck = getgenv().TeamCheck ~= false -- Default to true (exclude teammates) if not set
 
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -99,8 +100,14 @@ local getRootPart = function()
     return fpv_sol_instances.root 
 end
 
-local isVisible = function(Position, TargetCharacter) 
-    local Ignore = { Camera, workspace.Terrain, getCharacter(Player), TargetCharacter }
+local isVisible = function(Position, Ignore) 
+    local soldiers = {} 
+    for i, v in pairs(workspace:GetChildren()) do 
+        if v.Name == "soldier_model" then 
+            table.insert(soldiers, v) 
+        end 
+    end 
+    Ignore = Ignore or { Camera, workspace.Terrain, getCharacter(Player), workspace:FindFirstChild("workspace") and workspace.workspace:FindFirstChild("glass"), workspace.workspace:FindFirstChild("boundary"), unpack(soldiers) } 
     return #Camera:GetPartsObscuringTarget({ Position }, Ignore) == 0 
 end
 
@@ -149,7 +156,7 @@ getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
                             local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
                             local screenPos = Vector2.new(pos.X, pos.Y)
                             local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
-                            if magnitude < min_distance and (not VisibleCheck or isVisible(bone.Position, character)) then
+                            if magnitude < min_distance and (not VisibleCheck or isVisible(bone.Position)) then
                                 min_distance = magnitude
                                 best_hitbox = part_name
                             end
@@ -162,7 +169,7 @@ getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
                         local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
                         local screenPos = Vector2.new(pos.X, pos.Y)
                         local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
-                        if (not VisibleCheck or isVisible(bone.Position, character)) then
+                        if (not VisibleCheck or isVisible(bone.Position)) then
                             min_distance = magnitude
                             best_hitbox = part_name
                         end
