@@ -127,7 +127,7 @@ local old_exe_set = nil
 local Silent_Aim_Target = nil
 
 getgenv().fovCircle = createFOVCircle()
-getgenv().fovCircle.Visible = getgenv().FOV or true
+getgenv().fovCircle.Visible = getgenv().FOV
 getgenv().fovCircle.Color = Color3.fromRGB(255,255,255)
 
 getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
