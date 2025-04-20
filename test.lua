@@ -1,3 +1,4 @@
+-- script inside loadstring --
 if getgenv().con then getgenv().con:Disconnect() end
 if getgenv().fovCircle then getgenv().fovCircle:Remove() end
 
@@ -17,16 +18,14 @@ local Hitbox_Parts = {
     ["RightLeg"] = "TPVBodyVanillaLegR",
 }
 
--- Define possible hitbox names for dynamic mode
 local Possible_Hitbox_Names = {}
 for _, part_name in pairs(Hitbox_Parts) do
     table.insert(Possible_Hitbox_Names, part_name)
 end
 
 local Target_Hitbox = getgenv().TargetHitbox or "Head"
-local VisibleCheck = getgenv().VisibleCheck or false
 local fov = getgenv().fov or 180
-local TeamCheck = getgenv().TeamCheck ~= false -- Default to true (exclude teammates) if not set
+local TeamCheck = getgenv().TeamCheck ~= false
 
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -100,17 +99,6 @@ local getRootPart = function()
     return fpv_sol_instances.root 
 end
 
-local isVisible = function(Position, Ignore) 
-    local soldiers = {} 
-    for i, v in pairs(workspace:GetChildren()) do 
-        if v.Name == "soldier_model" then 
-            table.insert(soldiers, v) 
-        end 
-    end 
-    Ignore = Ignore or { Camera, workspace.Terrain, getCharacter(Player), workspace:FindFirstChild("workspace") and workspace.workspace:FindFirstChild("glass"), workspace.workspace:FindFirstChild("boundary"), unpack(soldiers) } 
-    return #Camera:GetPartsObscuringTarget({ Position }, Ignore) == 0 
-end
-
 local getHitboxes = function() 
     local hitboxes = {} 
     for _, v in pairs(workspace:GetChildren()) do 
@@ -153,26 +141,24 @@ getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
                     for _, part_name in ipairs(Possible_Hitbox_Names) do
                         local bone = character:FindFirstChild(part_name)
                         if bone then
-                            local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
+                            local pos = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
                             local screenPos = Vector2.new(pos.X, pos.Y)
                             local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
-                            if magnitude < min_distance and (not VisibleCheck or isVisible(bone.Position)) then
+                            if magnitude < min_distance then
                                 min_distance = magnitude
                                 best_hitbox = part_name
                             end
                         end
                     end
                 else
-                    local part_name = Hitbox_Parts[TargetHitbox]
+                    local part_name = Hitbox_Parts[Target_Hitbox]
                     local bone = character:FindFirstChild(part_name)
                     if bone then
-                        local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
+                        local pos = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
                         local screenPos = Vector2.new(pos.X, pos.Y)
                         local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
-                        if (not VisibleCheck or isVisible(bone.Position)) then
-                            min_distance = magnitude
-                            best_hitbox = part_name
-                        end
+                        min_distance = magnitude
+                        best_hitbox = part_name
                     end
                 end
                 if best_hitbox and min_distance < fov then
@@ -212,12 +198,22 @@ local exe_set_proxy = function(event, ...)
         end
 
         if Silent_Aim_Target and discharge_params then
-            local character = getCharacter(Silent_Aim_Target.player)
-            local bone = character and character:FindFirstChild(Silent_Aim_Target.hitbox)
-            if bone then
-                local fire_params = discharge_params.fire_params
-                local fire_multipliers = discharge_params.fire_multipliers
-                args[4] = CFrame.lookAt(args[3], bone.CFrame.p).LookVector * (fire_params.muzzle_velocity)
+            local clientCharacter = getCharacter(Player) -- Local player's character
+            local targetCharacter = getCharacter(Silent_Aim_Target.player) -- Target's character
+            local bone = targetCharacter and targetCharacter:FindFirstChild(Silent_Aim_Target.hitbox)
+            if bone and clientCharacter then
+                local origin = args[3] -- Gun muzzle position
+                local direction = bone.CFrame.p - origin -- Direction to target's hitbox
+                local raycastParams = RaycastParams.new()
+                raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+                raycastParams.FilterDescendantsInstances = {clientCharacter} -- Ignore local player’s character
+                local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+                if raycastResult and raycastResult.Instance:IsDescendantOf(targetCharacter) then
+                    -- Target is visible; adjust bullet direction
+                    local fire_params = discharge_params.fire_params
+                    args[4] = CFrame.lookAt(origin, bone.CFrame.p).LookVector * (fire_params.muzzle_velocity)
+                end
+                -- If raycast doesn’t hit the target’s character (e.g., hits a wall), do nothing
             end
         end
     end
