@@ -1,3 +1,5 @@
+-- script inside of loadstring --
+
 if getgenv().con then getgenv().con:Disconnect() end
 if getgenv().fovCircle then getgenv().fovCircle:Remove() end
 
@@ -12,6 +14,12 @@ local Hitbox_Parts = {
     ["Head"] = "TPVBodyVanillaHead",
     ["Torso"] = "HumanoidRootPart",
 }
+
+-- Define possible hitbox names for dynamic mode
+local Possible_Hitbox_Names = {}
+for _, part_name in pairs(Hitbox_Parts) do
+    table.insert(Possible_Hitbox_Names, part_name)
+end
 
 local Target_Hitbox = getgenv().TargetHitbox or "Head"
 local VisibleCheck = getgenv().VisibleCheck or false
@@ -117,37 +125,59 @@ local Silent_Aim_Target = nil
 getgenv().fovCircle = createFOVCircle()
 getgenv().fovCircle.Visible = getgenv().FOV or true
 getgenv().fovCircle.Color = Color3.fromRGB(255,255,255)
+
 getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
     getgenv().fovCircle.Position = UserInputService:GetMouseLocation()
-
-    local center = workspace.CurrentCamera.ViewportSize / 2
 
     local clientCharacter = getCharacter(Player)
     local clientHealth = getHealth(Player)
     local clientTeam = getTeam(Player)
 
-    if not clientCharacter then return end
-    if clientHealth <= 0 then return end
+    if not clientCharacter or clientHealth <= 0 then
+        Silent_Aim_Target = nil
+        return
+    end
+
     local Choices = {}
     for _, plr in next, Players:GetPlayers() do
         if plr ~= Player then
             local character = getCharacter(plr)
             local health = getHealth(plr)
             local team = getTeam(plr)
-            local bone = character and character:FindFirstChild(Hitbox_Parts[Target_Hitbox])
-            -- Modified condition: Apply team check only if TeamCheck is true
-            if health > 0 and character and (not TeamCheck or team ~= clientTeam) and bone then
-                local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
-                local p1, p2 = Vector2.new(Mouse.X, Mouse.Y), Vector2.new(pos.X, pos.Y)
-                local screenPos = Vector2.new(pos.X, pos.Y)
-
-                local magnitude = (p2 - p1).Magnitude
-                if (magnitude < fov) and not (VisibleCheck and not isVisible(bone.Position) and not vis) then
-                    local distance = math.floor((screenPos - center).Magnitude)
+            if health > 0 and character and (not TeamCheck or team ~= clientTeam) then
+                local best_hitbox = nil
+                local min_distance = math.huge
+                if getgenv().DynamicHitbox then
+                    for _, part_name in ipairs(Possible_Hitbox_Names) do
+                        local bone = character:FindFirstChild(part_name)
+                        if bone then
+                            local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
+                            local screenPos = Vector2.new(pos.X, pos.Y)
+                            local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
+                            if magnitude < min_distance and (not VisibleCheck or isVisible(bone.Position)) then
+                                min_distance = magnitude
+                                best_hitbox = part_name
+                            end
+                        end
+                    end
+                else
+                    local part_name = Hitbox_Parts[TargetHitbox]
+                    local bone = character:FindFirstChild(part_name)
+                    if bone then
+                        local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
+                        local screenPos = Vector2.new(pos.X, pos.Y)
+                        local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
+                        if (not VisibleCheck or isVisible(bone.Position)) then
+                            min_distance = magnitude
+                            best_hitbox = part_name
+                        end
+                    end
+                end
+                if best_hitbox and min_distance < fov then
                     table.insert(Choices, {
                         Player = plr,
-                        Distance = distance,
-                        Character = character,
+                        Distance = min_distance,
+                        Hitbox = best_hitbox,
                     })
                 end
             end
@@ -160,8 +190,7 @@ getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
 
     local choice = Choices[1]
     if choice then
-        local plr = choice.Player
-        Silent_Aim_Target = plr
+        Silent_Aim_Target = { player = choice.Player, hitbox = choice.Hitbox }
     else
         Silent_Aim_Target = nil
     end
@@ -181,13 +210,11 @@ local exe_set_proxy = function(event, ...)
         end
 
         if Silent_Aim_Target and discharge_params then
-            local character = getCharacter(Silent_Aim_Target)
-            local bone = character and character:FindFirstChild("HumanoidRootPart")
-
+            local character = getCharacter(Silent_Aim_Target.player)
+            local bone = character and character:FindFirstChild(Silent_Aim_Target.hitbox)
             if bone then
                 local fire_params = discharge_params.fire_params
                 local fire_multipliers = discharge_params.fire_multipliers
-
                 args[4] = CFrame.lookAt(args[3], bone.CFrame.p).LookVector * (fire_params.muzzle_velocity)
             end
         end
