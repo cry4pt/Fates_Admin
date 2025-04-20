@@ -13,6 +13,10 @@ local exe_set_t = getrenv()._G.exe_set_t
 local Hitbox_Parts = {
     ["Head"] = "TPVBodyVanillaHead",
     ["Torso"] = "HumanoidRootPart",
+    ["LeftArm"] = "TPVBodyVanillaArmL",
+    ["RightArm"] = "TPVBodyVanillaArmR",
+    ["LeftLeg"] = "TPVBodyVanillaLegL",
+    ["RightLeg"] = "TPVBodyVanillaLegR",
 }
 
 -- Define possible hitbox names for dynamic mode
