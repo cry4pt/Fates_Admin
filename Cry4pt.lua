@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua"))();
+
 local game = game
 local GetService = game.GetService
 if (not game.IsLoaded(game)) then
