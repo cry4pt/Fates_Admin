@@ -26,7 +26,6 @@ for _, part_name in pairs(Hitbox_Parts) do
 end
 
 local Target_Hitbox = getgenv().TargetHitbox or "Head"
-local VisibleCheck = getgenv().VisibleCheck or false
 local fov = getgenv().fov or 180
 local TeamCheck = getgenv().TeamCheck ~= false -- Default to true (exclude teammates) if not set
 local HitChance = getgenv().HitChance or 100 -- Default to 100 if not set
