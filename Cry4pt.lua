@@ -3175,58 +3175,89 @@ AddCommand("unview", {"unv"}, "unviews a user", {3}, function(Caller, Args)
 end)
 
 AddCommand("invisible", {"invis"}, "makes yourself invisible", {3}, function(Caller, Args, CEnv)
-    local Root = GetRoot();
+    local Character = GetCharacter()
+    if not Character then return "No character found" end
+    
+    local Root = GetRoot()
+    if not Root then return "No root part found" end
+    
+    -- Store original position
     local OldPos = Root.CFrame
-    local Seat = InstanceNew("Seat");
-    local Weld = InstanceNew("Weld");
-    Root.CFrame = CFrameNew(9e9, 9e9, 9e9);
-    wait(.2);
+    
+    -- Create seat for invisibility
+    local Seat = InstanceNew("Seat")
+    local Weld = InstanceNew("Weld")
+    
+    -- Move character temporarily to avoid visual glitches
+    Root.CFrame = CFrameNew(9e9, 9e9, 9e9)
+    wait(.2)
     Root.Anchored = true
-    ProtectInstance(Seat);
+    
+    -- Setup seat
+    ProtectInstance(Seat)
     Seat.Parent = Services.Workspace
+    Seat.Size = Vector3.new(2, 1, 0.1)  -- Better size for stability
+    Seat.Transparency = 1  -- Make seat invisible
+    Seat.CanCollide = false
     Seat.CFrame = Root.CFrame
     Seat.Anchored = false
+    
+    -- Setup weld
     Weld.Parent = Seat
     Weld.Part0 = Seat
     Weld.Part1 = Root
+    
+    -- Unanchor root and restore position
     Root.Anchored = false
     Seat.CFrame = OldPos
+    
+    -- Store seat and weld in command environment
     CEnv.Seat = Seat
     CEnv.Weld = Weld
-    for i, v in next, GetChildren(Root.Parent) do
-        if (IsA(v, "BasePart") or IsA(v, "MeshPart") or IsA(v, "Part")) then
-            CEnv[v] = v.Transparency
-            v.Transparency = v.Transparency <= 0.3 and 0.4 or v.Transparency
-        elseif (IsA(v, "Accessory")) then
-            local Handle = FindFirstChildWhichIsA(v, "MeshPart") or FindFirstChildWhichIsA(v, "Part");
-            if (Handle) then
-                CEnv[Handle] = Handle.Transparency
-                Handle.Transparency = Handle.Transparency <= 0.3 and 0.4 or Handle.Transparency    
-            end
+    CEnv.OriginalTransparency = {}
+    
+    -- Make character semi-transparent (better invisibility handling)
+    for _, part in next, Character:GetDescendants() do
+        if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("Part") then
+            CEnv.OriginalTransparency[part] = part.Transparency
+            part.Transparency = part.Transparency <= 0.3 and 0.4 or part.Transparency
         end
     end
-    return "you are now invisible"
+    
+    return "You are now invisible"
 end)
 
-AddCommand("uninvisible", {"uninvis", "noinvis", "visible", "vis"}, "gives you back visiblity", {3}, function(Caller, Args, CEnv)
+AddCommand("uninvisible", {"uninvis", "noinvis", "visible", "vis"}, "gives you back visibility", {3}, function(Caller, Args, CEnv)
     local CmdEnv = LoadCommand("invisible").CmdEnv
-    local Seat = CmdEnv.Seat
-    local Weld = CmdEnv.Weld
-    if (Seat and Weld) then
-        Weld.Part0 = nil
-        Weld.Part1 = nil
-        Destroy(Seat);
-        Destroy(Weld);
-        CmdEnv.Seat = nil
+    
+    if not CmdEnv.Seat or not CmdEnv.Weld then
+        return "You are already visible"
+    end
+    
+    -- Clean up seat and weld
+    if CmdEnv.Weld then
+        CmdEnv.Weld.Part0 = nil
+        CmdEnv.Weld.Part1 = nil
+        Destroy(CmdEnv.Weld)
         CmdEnv.Weld = nil
-        for i, v in next, CmdEnv do
-            if (type(v) == 'number') then
-                i.Transparency = v
+    end
+    
+    if CmdEnv.Seat then
+        Destroy(CmdEnv.Seat)
+        CmdEnv.Seat = nil
+    end
+    
+    -- Restore original transparency values
+    if CmdEnv.OriginalTransparency then
+        for part, transparency in next, CmdEnv.OriginalTransparency do
+            if part and part.Parent then
+                part.Transparency = transparency
             end
         end
-        return "you are now visible"
+        CmdEnv.OriginalTransparency = {}
     end
-    return "you are already visible"
+    
+    return "You are now visible"
 end)
 
 AddCommand("dupetools", {"dp"}, "dupes your tools", {"1", 1, {"protect"}}, function(Caller, Args, CEnv)
