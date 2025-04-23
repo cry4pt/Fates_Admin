@@ -5336,7 +5336,6 @@ AddCommand("noclip", {}, "noclips your character", {3}, function(Caller, Args, C
     end), CEnv)
     
     Utils.Notify(Caller, "Command", "Noclip enabled")
-    return "noclip enabled"
 end)
 
 AddCommand("clip", {"unnoclip"}, "disables noclip", {}, function(Caller, Args)
@@ -5374,7 +5373,6 @@ AddCommand("clip", {"unnoclip"}, "disables noclip", {}, function(Caller, Args)
     end
 
     Utils.Notify(Caller, "Command", "Noclip disabled")
-    return "noclip disabled"
 end)
 
 AddCommand("anim", {"animation"}, "plays an animation", {3, "1"}, function(Caller, Args)
