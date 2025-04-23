@@ -102,17 +102,6 @@ local getRootPart = function()
     return fpv_sol_instances.root 
 end
 
-local isVisible = function(Position, Ignore) 
-    local soldiers = {} 
-    for i, v in pairs(workspace:GetChildren()) do 
-        if v.Name == "soldier_model" then 
-            table.insert(soldiers, v) 
-        end 
-    end 
-    Ignore = Ignore or { Camera, workspace.Terrain, getCharacter(Player), workspace:FindFirstChild("workspace") and workspace.workspace:FindFirstChild("glass"), workspace.workspace:FindFirstChild("boundary"), unpack(soldiers) } 
-    return #Camera:GetPartsObscuringTarget({ Position }, Ignore) == 0 
-end
-
 local getHitboxes = function() 
     local hitboxes = {} 
     for _, v in pairs(workspace:GetChildren()) do 
