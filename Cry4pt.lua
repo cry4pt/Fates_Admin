@@ -5284,29 +5284,61 @@ AddCommand("fov", {}, "sets your fov", {}, function(Caller, Args)
 end)
 
 AddCommand("noclip", {}, "noclips your character", {3}, function(Caller, Args, CEnv)
+    -- First disconnect any existing noclip connections
+    DisableAllCmdConnections("noclip")
+    
     local Char = GetCharacter()
+    if not Char then return "Character not found" end
+    
+    -- Store original collision state
+    CEnv.OriginalCollisions = {}
+    for _, part in next, Char:GetDescendants() do
+        if IsA(part, "BasePart") and part.CanCollide then
+            CEnv.OriginalCollisions[part] = true
+            SpoofProperty(part, "CanCollide")
+            part.CanCollide = false
+        end
+    end
+    
+    -- Also handle the invisible seat if it exists
+    local InvisCmd = LoadCommand("invisible")
+    if InvisCmd and InvisCmd.CmdEnv and InvisCmd.CmdEnv.Seat then
+        CEnv.InvisSeat = InvisCmd.CmdEnv.Seat
+        SpoofProperty(InvisCmd.CmdEnv.Seat, "CanCollide")
+        InvisCmd.CmdEnv.Seat.CanCollide = false
+    end
+    
+    -- Set up the noclip loop with RunService.Stepped
     local Noclipping = AddConnection(CConnect(Stepped, function()
-        for _, v in next, GetChildren(Char) do
-            if IsA(v, "BasePart") and v.CanCollide then
-                SpoofProperty(v, "CanCollide")
-                v.CanCollide = false
+        for _, part in next, Char:GetDescendants() do
+            if IsA(part, "BasePart") and part.CanCollide then
+                part.CanCollide = false
             end
+        end
+        
+        -- Keep checking the invisible seat too
+        if InvisCmd and InvisCmd.CmdEnv and InvisCmd.CmdEnv.Seat then
+            InvisCmd.CmdEnv.Seat.CanCollide = false
         end
     end), CEnv)
     
-    Utils.Notify(Caller, "Command", "noclip enabled")
-    
-    CWait(GetHumanoid().Died)
-    DisableAllCmdConnections("noclip")
-    
-    -- Restore collision after death
-    for _, v in next, GetChildren(Char) do
-        if IsA(v, "BasePart") then
-            v.CanCollide = true
+    -- Monitor for new parts being added during noclip
+    local DescendantAdded = AddConnection(CConnect(Char.DescendantAdded, function(Descendant)
+        if IsA(Descendant, "BasePart") and Descendant.CanCollide then
+            SpoofProperty(Descendant, "CanCollide")
+            task.wait() -- Wait a frame to let the part initialize
+            Descendant.CanCollide = false
         end
-    end
-
-    return "noclip disabled"
+    end), CEnv)
+    
+    -- Handle character death
+    AddConnection(CConnect(GetHumanoid().Died, function()
+        DisableAllCmdConnections("noclip")
+        Utils.Notify(Caller, "Command", "Noclip disabled (character died)")
+    end), CEnv)
+    
+    Utils.Notify(Caller, "Command", "Noclip enabled")
+    return "noclip enabled"
 end)
 
 AddCommand("clip", {"unnoclip"}, "disables noclip", {}, function(Caller, Args)
@@ -5315,20 +5347,37 @@ AddCommand("clip", {"unnoclip"}, "disables noclip", {}, function(Caller, Args)
         return "you aren't in noclip"
     end
 
-    -- Disconnect the noclip loop
+    -- Disconnect all noclip connections
     DisableAllCmdConnections("noclip")
 
-    -- Force collision back on immediately
+    -- Restore original collision states
     local Char = GetCharacter()
-    for _, v in next, GetChildren(Char) do
-        if IsA(v, "BasePart") then
-            v.CanCollide = true
+    if Char then
+        -- First restore from the saved original collisions
+        if Cmd.CmdEnv.OriginalCollisions then
+            for part, _ in next, Cmd.CmdEnv.OriginalCollisions do
+                if part and part.Parent then
+                    part.CanCollide = true
+                end
+            end
+        end
+        
+        -- Also restore any parts that might have been missed
+        for _, part in next, Char:GetDescendants() do
+            if IsA(part, "BasePart") then
+                part.CanCollide = true
+            end
         end
     end
+    
+    -- Restore invisible seat collision if it exists
+    if Cmd.CmdEnv.InvisSeat and Cmd.CmdEnv.InvisSeat.Parent then
+        Cmd.CmdEnv.InvisSeat.CanCollide = true
+    end
 
+    Utils.Notify(Caller, "Command", "Noclip disabled")
     return "noclip disabled"
 end)
-
 
 AddCommand("anim", {"animation"}, "plays an animation", {3, "1"}, function(Caller, Args)
     local Anims = {
