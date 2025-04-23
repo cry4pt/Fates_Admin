@@ -3400,7 +3400,7 @@ AddCommand("dupetools2", {"rejoindupe", "dupe2"}, "sometimes a faster dupetools"
             end
             delfile("fates-admin/tooldupe.txt");
             delfile("fates-admin/tooldupe.lua");
-            loadstring(game.HttpGet(game, "https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua"))();
+            loadstring(game.HttpGet(game, "https://raw.githubusercontent.com/cry4pt/Fates_Admin/refs/heads/main/Cry4pt.lua"))();
             RootPart.CFrame = OldPos
             repeat wait() RootPart.CFrame = OldPos until RootPart.CFrame == OldPos
             getgenv().F_A.PluginLibrary.ExecuteCommand("dp", {"1"}, LocalPlayer);
@@ -5577,7 +5577,7 @@ AddCommand("serverhop", {"sh"}, "switches servers (optional: min, max (default: 
 
         local queue_on_teleport = syn and syn.queue_on_teleport or queue_on_teleport
         if (queue_on_teleport and not Args[2]) then
-            queue_on_teleport("loadstring(game.HttpGet(game, \"https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua\"))()");
+            queue_on_teleport("loadstring(game.HttpGet(game, \"https://raw.githubusercontent.com/cry4pt/Fates_Admin/refs/heads/main/Cry4pt.lua\"))()");
         end;
 
         Services.TeleportService:TeleportToPlaceInstance(game.PlaceId, Server.id);    
@@ -5705,7 +5705,7 @@ end)
 AddCommand("reloadscript", {}, "kills the script and reloads it", {}, function(Caller)
     if (Caller == LocalPlayer) then
         ExecuteCommand("killscript", {}, LocalPlayer);
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua"))();
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/cry4pt/Fates_Admin/refs/heads/main/Cry4pt.lua"))();
     end
 end)
 
@@ -6478,7 +6478,7 @@ AddCommand("rejoinre", {"rje"}, "rejoins and tps you to your old position", {3},
     local Pos = GetRoot().CFrame
     local queue_on_teleport = syn and syn.queue_on_teleport or queue_on_teleport
     if (queue_on_teleport) then
-        queue_on_teleport(format("game.Loaded:Wait();game:GetService('ReplicatedFirst'):SetDefaultLoadingGuiRemoved();local LocalPlayer = game:GetService('Players').LocalPlayer;LocalPlayer.CharacterAdded:Wait():WaitForChild('HumanoidRootPart').CFrame = CFrame.new(%s);loadstring(game.HttpGet(game, \"https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua\"))()", tostring(Pos)));
+        queue_on_teleport(format("game.Loaded:Wait();game:GetService('ReplicatedFirst'):SetDefaultLoadingGuiRemoved();local LocalPlayer = game:GetService('Players').LocalPlayer;LocalPlayer.CharacterAdded:Wait():WaitForChild('HumanoidRootPart').CFrame = CFrame.new(%s);loadstring(game.HttpGet(game, \"https://raw.githubusercontent.com/cry4pt/Fates_Admin/refs/heads/main/Cry4pt.lua\"))()", tostring(Pos)));
     end
     ExecuteCommand("rejoin", {}, LocalPlayer);
 end)
