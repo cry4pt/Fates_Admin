@@ -5521,6 +5521,12 @@ end)
 
 AddCommand("rejoin", {"rj"}, "rejoins the game you're currently in", {}, function(Caller)
     if (Caller == LocalPlayer) then
+        -- Queue script to auto-execute after teleport
+        local queue_on_teleport = syn and syn.queue_on_teleport or queue_on_teleport
+        if (queue_on_teleport) then
+            queue_on_teleport("loadstring(game.HttpGet(game, \"https://raw.githubusercontent.com/cry4pt/Fates_Admin/refs/heads/main/Cry4pt.lua\"))()");
+        end
+        
         local TeleportService = Services.TeleportService
         if (#GetPlayers(Players) == 1) then
             LocalPlayer:Kick();
