@@ -5531,7 +5531,6 @@ AddCommand("rejoin", {"rj"}, "rejoins the game you're currently in", {}, functio
             TeleportService.TeleportToPlaceInstance(TeleportService, game.PlaceId, game.JobId)
         end
         return "Rejoining..."
-
         local queue_on_teleport = syn and syn.queue_on_teleport or queue_on_teleport
         if (queue_on_teleport and not Args[2]) then
             queue_on_teleport("loadstring(game.HttpGet(game, \"https://raw.githubusercontent.com/cry4pt/Fates_Admin/refs/heads/main/Cry4pt.lua\"))()");
