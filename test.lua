@@ -157,10 +157,10 @@ getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
                     for _, part_name in ipairs(Possible_Hitbox_Names) do
                         local bone = character:FindFirstChild(part_name)
                         if bone then
-                            local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
+                            local pos = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
                             local screenPos = Vector2.new(pos.X, pos.Y)
                             local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
-                            if magnitude < min_distance and (not VisibleCheck or isVisible(bone.Position)) then
+                            if magnitude < min_distance then -- Removed visibility check
                                 min_distance = magnitude
                                 best_hitbox = part_name
                             end
@@ -170,10 +170,10 @@ getgenv().con = game:GetService("RunService").RenderStepped:Connect(function()
                     local part_name = Hitbox_Parts[Target_Hitbox]
                     local bone = character:FindFirstChild(part_name)
                     if bone then
-                        local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
+                        local pos = workspace.CurrentCamera:WorldToViewportPoint(bone.Position)
                         local screenPos = Vector2.new(pos.X, pos.Y)
                         local magnitude = (screenPos - UserInputService:GetMouseLocation()).Magnitude
-                        if (not VisibleCheck or isVisible(bone.Position)) then
+                        if true then -- Removed visibility check
                             min_distance = magnitude
                             best_hitbox = part_name
                         end
