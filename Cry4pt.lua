@@ -1,7 +1,3 @@
---[[
-	Cry4pt - 24/3/2025
-]]
-
 local game = game
 local GetService = game.GetService
 if (not game.IsLoaded(game)) then
